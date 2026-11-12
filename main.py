@@ -103,67 +103,12 @@ if menu == "공부타이머":
         total_sec_sum = df["초(sec)"].sum()
         total_h = total_sec_sum // 3600
         total_m = (total_sec_sum % 3600) // 60
-
-        # 세션 상태 초기화
-        if "show_review_input" not in st.session_state:
-            st.session_state.show_review_input = False
-        if "retrospectives" not in st.session_state:
-            st.session_state.retrospectives = []
-
-        # 총 학습 시간 메트릭 옆에 '회고 추가' 버튼 배치
-        metric_col, btn_col = st.columns([0.7, 0.3])
-        with metric_col:
-            st.metric("오늘의 누적 학습 시간", f"{total_h}시간 {total_m}분")
-        with btn_col:
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("📝 회고 추가"):
-                st.session_state.show_review_input = not st.session_state.show_review_input
-
-        # 종이 모양의 텍스트 입력 위젯
-        if st.session_state.show_review_input:
-            st.markdown(
-                """
-                <div style="background-color: #f9f9fb; border: 1px solid #e0e0e0; padding: 20px; border-radius: 10px; margin-top: 10px; margin-bottom: 20px;">
-                    <h4 style="margin-top: 0; color: #333;">📄 오늘의 공부 회고 작성</h4>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            with st.form("review_form", clear_on_submit=True):
-                review_content = st.text_area(
-                    "회고 내용",
-                    placeholder="오늘 어떤 시간에 집중을 못 했고, 그 이유는 무엇이었나요?",
-                    label_visibility="collapsed"
-                )
-                st.markdown(
-                    "<p style='font-size: 11px; color: #888; margin-top: -10px;'>※ 어떤 시간에 집중을 못 했는지, 그 이유는 무엇이었는지 자유롭게 작성해 보세요.</p>",
-                    unsafe_allow_html=True
-                )
-                submit_review = st.form_submit_button("회고 저장")
-                if submit_review:
-                    if review_content.strip():
-                        current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        st.session_state.retrospectives.append({
-                            "날짜": current_date,
-                            "내용": review_content
-                        })
-                        st.success("공부 회고가 저장되었습니다!")
-                        st.session_state.show_review_input = False
-                        st.rerun()
-                    else:
-                        st.warning("내용을 입력해주세요.")
-
-        # 저장된 회고 목록 표시
-        if st.session_state.retrospectives:
-            st.markdown("##### 📌 작성된 회고록")
-            for idx, rev in enumerate(st.session_state.retrospectives):
-                st.info(f"[{rev['날짜']}]\n\n{rev['내용']}")
+        st.metric("오늘의 누적 학습 시간", f"{total_h}시간 {total_m}분")
 
         st.dataframe(df[["날짜", "과목", "학습 시간"]], use_container_width=True)
         
         if st.button("🗑️ 전체 기록 삭제"):
             st.session_state.records = []
-            st.session_state.retrospectives = []
             st.rerun()
     else:
         st.info("아직 기록된 학습 시간이 없습니다. 타이머로 공부 시간을 측정하고 저장해보세요!")
@@ -226,4 +171,72 @@ elif menu == "오늘 할 일":
 # 3. 공부회고 메뉴
 elif menu == "공부회고":
     st.title("✏️ 공부회고")
-    st.info("공부회고 페이지입니다.")
+
+    if "retrospectives" not in st.session_state:
+        st.session_state.retrospectives = []
+    if "show_review_input" not in st.session_state:
+        st.session_state.show_review_input = False
+
+    # 총 공부 시간 계산 (타이머 기록 연동)
+    total_h, total_m = 0, 0
+    if "records" in st.session_state and st.session_state.records:
+        df_rec = pd.DataFrame(st.session_state.records)
+        total_sec_sum = df_rec["초(sec)"].sum()
+        total_h = total_sec_sum // 3600
+        total_m = (total_sec_sum % 3600) // 60
+
+    # 총 공부시간 옆에 '추가' 버튼 배치
+    metric_col, btn_col = st.columns([0.7, 0.3])
+    with metric_col:
+        st.metric("오늘의 총 공부 시간", f"{total_h}시간 {total_m}분")
+    with btn_col:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("📝 회고 추가"):
+            st.session_state.show_review_input = not st.session_state.show_review_input
+
+    # 종이 모양 위젯 (텍스트 입력 및 안내사항)
+    if st.session_state.show_review_input:
+        st.markdown(
+            """
+            <div style="background-color: #f9f9fb; border: 1px solid #e0e0e0; padding: 20px; border-radius: 10px; margin-top: 10px; margin-bottom: 20px;">
+                <h4 style="margin-top: 0; color: #333;">📄 오늘의 공부 회고 작성</h4>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        with st.form("review_form", clear_on_submit=True):
+            review_content = st.text_area(
+                "회고 내용",
+                placeholder="오늘 어떤 시간에 집중을 못 했고, 그 이유는 무엇이었나요?",
+                label_visibility="collapsed"
+            )
+            st.markdown(
+                "<p style='font-size: 11px; color: #888; margin-top: -10px;'>※ 어떤 시간에 집중을 못 했는지, 그 이유는 무엇이었는지 자유롭게 작성해 보세요.</p>",
+                unsafe_allow_html=True
+            )
+            submit_review = st.form_submit_button("회고 저장")
+            if submit_review:
+                if review_content.strip():
+                    current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    st.session_state.retrospectives.append({
+                        "날짜": current_date,
+                        "내용": review_content
+                    })
+                    st.success("공부 회고가 저장되었습니다!")
+                    st.session_state.show_review_input = False
+                    st.rerun()
+                else:
+                    st.warning("내용을 입력해주세요.")
+
+    st.markdown("---")
+    st.subheader("📌 작성된 회고록 목록")
+
+    if st.session_state.retrospectives:
+        for idx, rev in enumerate(st.session_state.retrospectives):
+            st.info(f"[{rev['날짜']}]\n\n{rev['내용']}")
+        
+        if st.button("🗑️ 전체 회고 삭제"):
+            st.session_state.retrospectives = []
+            st.rerun()
+    else:
+        st.info("아직 작성된 공부 회고가 없습니다. '회고 추가' 버튼을 눌러 회고를 작성해보세요!")
