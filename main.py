@@ -190,4 +190,24 @@ elif menu == "공부회고":
     # 총 공부시간 옆에 '추가' 버튼 배치
     metric_col, btn_col = st.columns([0.7, 0.3])
     with metric_col:
-        st.metric("오늘의 총 공부 시간", f"{total_h}시간 {total_m}
+        st.metric("오늘의 총 공부 시간", f"{total_h}시간 {total_m}분")
+    with btn_col:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("📝 회고 추가"):
+            st.session_state.show_review_input = not st.session_state.show_review_input
+
+    # 종이 모양 위젯 (텍스트 입력 및 안내사항)
+    if st.session_state.show_review_input:
+        st.markdown(
+            """
+            <div style="background-color: #f9f9fb; border: 1px solid #e0e0e0; padding: 20px; border-radius: 10px; margin-top: 10px; margin-bottom: 20px;">
+                <h4 style="margin-top: 0; color: #333;">📄 오늘의 공부 회고 작성</h4>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        with st.form("review_form", clear_on_submit=True):
+            review_content = st.text_area(
+                "회고 내용",
+                placeholder="오늘 어떤 시간에 집중을 못 했고, 그 이유는 무엇이었나요?",
+                label
