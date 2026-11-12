@@ -10,6 +10,9 @@ st.set_page_config(page_title="학생용 학습 앱", page_icon="⏱️", layout
 st.sidebar.title("📌 메뉴")
 menu = st.sidebar.radio("원하는 기능을 선택하세요", ["공부타이머", "오늘 할 일", "공부회고"])
 
+# 공통 과목 리스트
+subject_list = ["국어", "영어", "수학", "사회", "과학", "한국사", "소생", "과탐실", "기타"]
+
 # 1. 공부타이머 메뉴
 if menu == "공부타이머":
     if "running" not in st.session_state:
@@ -56,10 +59,9 @@ if menu == "공부타이머":
 
     st.title("⏱️ 학생용 학습 타이머")
 
-    subject_list = ["국어", "수학", "영어", "과학", "사회", "기타"]
     selected_subject = st.selectbox("📖 공부할 과목을 선택하세요", subject_list)
     if selected_subject == "기타":
-        custom_subject = st.text_input("직접 과목명을 입력하세요", placeholder="예: 코딩")
+        custom_subject = st.text_input("직접 과목명을 입력하세요", placeholder="예: 프로그래밍")
         if custom_subject:
             selected_subject = custom_subject
 
@@ -125,8 +127,8 @@ elif menu == "오늘 할 일":
         st.session_state.todo_list = []
 
     with st.form("todo_form", clear_on_submit=True):
-        todo_subject = st.selectbox("📖 과목 선택", ["국어", "수학", "영어", "과학", "사회", "기타"])
-        todo_task = st.text_input("할 일을 입력하세요", placeholder="예: 수학의 정석 3단원 풀기")
+        todo_subject = st.selectbox("📖 과목 선택", subject_list)
+        todo_task = st.text_input("할 일을 입력하세요", placeholder="예: 수학 문제집 3쪽 풀기")
         submit_button = st.form_submit_button("➕ 추가")
 
         if submit_button:
@@ -188,55 +190,4 @@ elif menu == "공부회고":
     # 총 공부시간 옆에 '추가' 버튼 배치
     metric_col, btn_col = st.columns([0.7, 0.3])
     with metric_col:
-        st.metric("오늘의 총 공부 시간", f"{total_h}시간 {total_m}분")
-    with btn_col:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("📝 회고 추가"):
-            st.session_state.show_review_input = not st.session_state.show_review_input
-
-    # 종이 모양 위젯 (텍스트 입력 및 안내사항)
-    if st.session_state.show_review_input:
-        st.markdown(
-            """
-            <div style="background-color: #f9f9fb; border: 1px solid #e0e0e0; padding: 20px; border-radius: 10px; margin-top: 10px; margin-bottom: 20px;">
-                <h4 style="margin-top: 0; color: #333;">📄 오늘의 공부 회고 작성</h4>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        with st.form("review_form", clear_on_submit=True):
-            review_content = st.text_area(
-                "회고 내용",
-                placeholder="오늘 어떤 시간에 집중을 못 했고, 그 이유는 무엇이었나요?",
-                label_visibility="collapsed"
-            )
-            st.markdown(
-                "<p style='font-size: 11px; color: #888; margin-top: -10px;'>※ 어떤 시간에 집중을 못 했는지, 그 이유는 무엇이었는지 자유롭게 작성해 보세요.</p>",
-                unsafe_allow_html=True
-            )
-            submit_review = st.form_submit_button("회고 저장")
-            if submit_review:
-                if review_content.strip():
-                    current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    st.session_state.retrospectives.append({
-                        "날짜": current_date,
-                        "내용": review_content
-                    })
-                    st.success("공부 회고가 저장되었습니다!")
-                    st.session_state.show_review_input = False
-                    st.rerun()
-                else:
-                    st.warning("내용을 입력해주세요.")
-
-    st.markdown("---")
-    st.subheader("📌 작성된 회고록 목록")
-
-    if st.session_state.retrospectives:
-        for idx, rev in enumerate(st.session_state.retrospectives):
-            st.info(f"[{rev['날짜']}]\n\n{rev['내용']}")
-        
-        if st.button("🗑️ 전체 회고 삭제"):
-            st.session_state.retrospectives = []
-            st.rerun()
-    else:
-        st.info("아직 작성된 공부 회고가 없습니다. '회고 추가' 버튼을 눌러 회고를 작성해보세요!")
+        st.metric("오늘의 총 공부 시간", f"{total_h}시간 {total_m}
