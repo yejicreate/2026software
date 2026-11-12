@@ -159,4 +159,5 @@ elif menu == "오늘 할 일":
                 else:
                     st.write(item['할 일'])
             with cols[3]:
-                if st.button("❌
+                if st.button("❌", key=f"del_{idx}"):
+                    st.session_state.todo_list.pop(
